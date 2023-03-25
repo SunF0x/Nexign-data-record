@@ -55,28 +55,32 @@ public class Main {
                 users.computeIfAbsent(phone, b -> GetFirstTime());
                 tarifs.computeIfAbsent(phone, b -> GetTarif());
                 double sum = users.get(phone);//minutes
-                double local_sum = duration.toSeconds()/60.0;
-                users.put(phone,sum+local_sum);
+                double local_sum = duration.toSeconds();
+                if ((tarif == 11)&&(type == 2)) {
+                    users.put(phone,sum);
+                }
+                else {
+                    users.put(phone,sum+local_sum);}
                 double price = 0;
                 if (tarif == 6) {
-                    if (users.get(phone) <= 300) {
-                        price = 0;//100.00
+                    if (users.get(phone)/60 <= 300) {
+                        price = 100;//100.00
                     }
                     else {
-                        price = 100+(users.get(phone)/60.0)*1;
+                        price = 100+(users.get(phone)/60.0-300)*1;
                     }
                     System.out.println("Price "+ price);
                 }
                 else if (tarif == 11) {
                     if (type == 2) {
-                        price  = 0;
+                        price  = tarifs.get(phone);
                     }
                     else if (type == 1) {
-                        if (users.get(phone) <= 100) {
+                        if (users.get(phone)/60 <= 100) {
                             price = (users.get(phone)/60.0)* 0.5;//100.00
                         }
                         else {
-                            price = ((users.get(phone)-100)/60.0)*1.5;
+                            price = 100*0.5+(users.get(phone)/60.0-100)*1.5;
                         }
 //                        price  = (duration.toSeconds()/60.0)* 0.5;// * 0.5
                         //System.out.println("Price "+price );
@@ -87,8 +91,8 @@ public class Main {
                     price = (users.get(phone)/60.0) * 1.5;
                     System.out.println("Price "+price );
                 }
-                double last_price = tarifs.get(phone);//price before
-                tarifs.put(phone,last_price+price);
+                //double last_price = tarifs.get(phone);//price before
+                tarifs.put(phone,price);
                 Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String date1_f = formatter.format(date1);
                 String date2_f = formatter.format(date2);
