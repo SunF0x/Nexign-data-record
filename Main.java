@@ -14,25 +14,28 @@ public class Main {
         File file = new File("cdr.txt");
 
         try {
-            int i = 0;
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
-            Map<String,Double> users = new HashMap<String,Double>();
-            Map<String,Double> tarifs = new HashMap<String,Double>();
+            Map<String,Double> users = new HashMap<>();
+            Map<String,Double> tarifs = new HashMap<>();
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-//                i++;
-//                System.out.println(i);
+                // System.out.println(line);
+                // reading and parsing line
                 String[] tokens = line.split(", ");
                 int type = Integer.parseInt(tokens[0]);
                 String phone = tokens[1];
-                String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", tokens[1]);
+                DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+                Date date1 = format.parse(tokens[2]);
+                Date date2 = format.parse(tokens[3]);
+                int tariff = Integer.parseInt(tokens[4]);
+
+                // forming header of file reports
+                String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", phone);
                 File report = new File(path);
                 if (report.createNewFile()) {
-                    //сюда пишем заголовок файла сразу
                     Writer writer = new FileWriter(report, true);
                     PrintWriter printWriter =  new PrintWriter(writer);
-                    printWriter.println(String.format("Tariff index: %s",tokens[4]));
+                    printWriter.println(String.format("Tariff index: %s",tariff));
                     printWriter.println("----------------------------------------------------------------------------");
                     printWriter.println(String.format("Report for phone number  %s:",phone));
                     printWriter.println("----------------------------------------------------------------------------");
@@ -40,38 +43,36 @@ public class Main {
                     printWriter.println("----------------------------------------------------------------------------");
                     printWriter.close();
                 }
-//                System.out.println(type);
-//                System.out.println(phone);
-                DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-                Date date1 = format.parse(tokens[2]);
-                // System.out.println(date1); // Sat Jan 02 00:00:00 GMT 2010
-                Date date2 = format.parse(tokens[3]);
-                // System.out.println(date2);
-                int tarif = Integer.parseInt(tokens[4]);
-                Duration duration = Duration.between(date1.toInstant(), date2.toInstant());
-                System.out.println(duration.toSeconds());
-//              System.out.println(duration.toMinutes());
-//              double sum = 0;
+
+                // adding phone to dict users (time in seconds) and tariffs (price)
                 users.computeIfAbsent(phone, b -> GetFirstTime());
                 tarifs.computeIfAbsent(phone, b -> GetTarif());
-                double sum = users.get(phone);//minutes
+
+                // finding duration between start and finish call
+                Duration duration = Duration.between(date1.toInstant(), date2.toInstant());
+
+                // adding time of call to users dict
+                double sum = users.get(phone); // seconds
                 double local_sum = duration.toSeconds();
-                if ((tarif == 11)&&(type == 2)) {
+                if ((tariff == 11)&&(type == 2)) {
                     users.put(phone,sum);
                 }
                 else {
-                    users.put(phone,sum+local_sum);}
+                    users.put(phone,sum+local_sum);
+                }
+
+                // counting price for each tariff
                 double price = 0;
-                if (tarif == 6) {
+                if (tariff == 6) {
                     if (users.get(phone)/60 <= 300) {
                         price = 100;//100.00
                     }
                     else {
                         price = 100+(users.get(phone)/60.0-300)*1;
                     }
-                    System.out.println("Price "+ price);
+                    // System.out.println("Price "+ price);
                 }
-                else if (tarif == 11) {
+                else if (tariff == 11) {
                     if (type == 2) {
                         price  = tarifs.get(phone);
                     }
@@ -82,37 +83,40 @@ public class Main {
                         else {
                             price = 100*0.5+(users.get(phone)/60.0-100)*1.5;
                         }
-//                        price  = (duration.toSeconds()/60.0)* 0.5;// * 0.5
-                        //System.out.println("Price "+price );
                     }
-                    System.out.println("Price "+price );
+                    // System.out.println("Price "+price );
                 }
-                else if (tarif == 3) {
+                else if (tariff == 3) {
                     price = (users.get(phone)/60.0) * 1.5;
-                    System.out.println("Price "+price );
+                    // System.out.println("Price "+price );
                 }
-                //double last_price = tarifs.get(phone);//price before
+
+                // adding new final price of call to tariffs dict
                 tarifs.put(phone,price);
+
+                // adding line to report
                 Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String date1_f = formatter.format(date1);
                 String date2_f = formatter.format(date2);
                 Writer writer = new FileWriter(report, true);
                 PrintWriter printWriter =  new PrintWriter(writer);
-                printWriter.println(String.format("|     0%d    | %s | %s | %d:%02d:%02d |  %.2f |",type,date1_f,date2_f,duration.toSeconds()/ 3600, (duration.toSeconds() % 3600) / 60, (duration.toSeconds() % 60),price));
+                printWriter.println(String.format("|     0%d    | %s | %s | %d:%02d:%02d |  %.2f |",
+                        type,date1_f,date2_f,duration.toSeconds()/ 3600, (duration.toSeconds() % 3600) / 60,
+                        (duration.toSeconds() % 60),price));
                 printWriter.close();
-                //System.out.println("-----\n"+users.size()+"\n"+users.toString());
             }
-        for (String key : users.keySet()) {
-                // use the key her
-            String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", key);
-            File report = new File(path);
-            Writer writer = new FileWriter(report, true);
-            PrintWriter printWriter =  new PrintWriter(writer);
-            printWriter.println("----------------------------------------------------------------------------");
-            printWriter.println(String.format("|                                           Total Cost: |     %.2f rubles |",tarifs.get(key)));
-            printWriter.println("----------------------------------------------------------------------------");
-            printWriter.close();
-        }
+            // adding footer with final price
+            for (String key : users.keySet()) {
+                String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", key);
+                File report = new File(path);
+                Writer writer = new FileWriter(report, true);
+                PrintWriter printWriter =  new PrintWriter(writer);
+                printWriter.println("----------------------------------------------------------------------------");
+                printWriter.println(String.format("|                                           Total Cost: |     %.2f rubles |",
+                        tarifs.get(key)));
+                printWriter.println("----------------------------------------------------------------------------");
+                printWriter.close();
+            }
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
