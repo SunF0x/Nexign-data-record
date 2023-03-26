@@ -30,7 +30,7 @@ public class Main {
                 int tariff = Integer.parseInt(tokens[4]);
 
                 // forming header of file reports
-                String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", phone);
+                String path = String.format("reports/%s.txt", phone);
                 File report = new File(path);
                 if (report.createNewFile()) {
                     Writer writer = new FileWriter(report, true);
@@ -107,7 +107,7 @@ public class Main {
             }
             // adding footer with final price
             for (String key : users.keySet()) {
-                String path = String.format("C://Users/katya/Downloads/for_work/Nexign-data-record/reports/%s.txt", key);
+                String path = String.format("reports/%s.txt", key);
                 File report = new File(path);
                 Writer writer = new FileWriter(report, true);
                 PrintWriter printWriter =  new PrintWriter(writer);
